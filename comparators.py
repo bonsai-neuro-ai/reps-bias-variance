@@ -1,0 +1,159 @@
+import numpy as np
+from typing import Optional
+
+
+def transpose_space_to_batch(conv_rep):
+    b, c, h, w = conv_rep.shape
+    return conv_rep.permute(0, 2, 3, 1).reshape(b * h * w, c)
+
+
+def prep_reps(rep1, rep2, center=True, scale=True, conv_trick="none"):
+    m = rep1.shape[0]
+    if center:
+        rep1 = rep1 - np.mean(rep1, axis=0)
+        rep2 = rep2 - np.mean(rep2, axis=0)
+
+    if scale:
+        rep1 = rep1 / np.sqrt(np.sum(rep1**2))
+        rep2 = rep2 / np.sqrt(np.sum(rep2**2))
+
+    if conv_trick == "none":
+        # Flatten spatial and channel dimensions -> (b, h*w*c)
+        rep1 = rep1.reshape(m, -1)
+        rep2 = rep2.reshape(m, -1)
+    elif conv_trick == "transpose":
+        # Constrain rotations to corresponding spatial locations -> (b*h*w, c)
+        rep1 = transpose_space_to_batch(rep1)
+        rep2 = transpose_space_to_batch(rep2)
+    else:
+        raise ValueError("Unknown conv_trick")
+    return rep1, rep2
+
+
+def double_center(k):
+    m = k.shape[0]
+    h = np.eye(m, dtype=k.dtype, device=k.device) - np.ones_like(k) / m
+    return h @ k @ h
+
+
+def hsic(x, y, debias="none", kernel="linear"):
+    if kernel == "linear":
+        # Center
+        x = x - np.mean(x, axis=0)
+        y = y - np.mean(y, axis=0)
+        # Compute (Linear) HSIC
+        kx = np.einsum("if,jf->ij", x, x)
+        ky = np.einsum("if,jf->ij", y, y)
+    elif kernel == "brownian":
+        assert x.ndim == 2 and y.ndim == 2, "x and y must be 2D"
+        norm_x = np.linalg.norm(x, axis=-1)
+        norm_y = np.linalg.norm(y, axis=-1)
+        dist_x = rdm(x, q=1.0)
+        dist_y = rdm(y, q=1.0)
+        kx = 1 / 2 * (norm_x[:, None] + norm_x[None, :] - dist_x)
+        ky = 1 / 2 * (norm_y[:, None] + norm_y[None, :] - dist_y)
+    else:
+        raise ValueError("Unknown kernel")
+
+    kx = double_center(kx)
+    ky = double_center(ky)
+
+    m = x.shape[0]
+
+    if debias == "none":
+        return np.sum(kx * ky) / (m * (m - 1))
+    elif debias == "lange":
+        i, j = np.triu_indices(m, m, 1)
+        return np.sum(kx[i, j] * ky[i, j]) * 2 / (m * (m - 3))
+    elif debias == "song":
+        # Zero the diagonal
+        kx[np.arange(m), np.arange(m)] = 0
+        ky[np.arange(m), np.arange(m)] = 0
+        return (
+            np.sum(kx * ky)
+            + np.sum(kx) * np.sum(ky) / ((m - 1) * (m - 2) - 2 / (m - 2) * np.sum(kx @ ky))
+        ) / (m * (m - 3))
+    else:
+        raise ValueError("Unknown debias")
+
+
+def cka(rep1, rep2, debias="none", conv_trick="none", kernel="linear"):
+    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=False, scale=False)
+    return hsic(rep1, rep2, debias, kernel) / np.sqrt(
+        hsic(rep1, rep1, debias, kernel) * hsic(rep2, rep2, debias, kernel)
+    )
+
+
+def procrustes(rep1, rep2, conv_trick="none"):
+    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=True, scale=True)
+    # Compute Procrustes similarity using nuclear norm trick. Note that norm
+    # on the covariance (e.g. 1/m or 1/(m-1)) is irrelevant because canceled
+    # in the last line.
+    cov_xy = np.einsum("bi,bj->ij", rep1, rep2)
+    trace_cov_x = np.sum(rep1**2)
+    trace_cov_y = np.sum(rep2**2)
+    return np.linalg.matrix_norm(cov_xy, ord="nuc") / np.sqrt(trace_cov_x * trace_cov_y)
+
+
+def sqrtm(A):
+    e, v = np.linalg.eigh(A)
+    return v @ np.diag(np.sqrt(np.clip(e, 0))) @ v.T
+
+
+def fidelity(kx, ky):
+    kx_half = sqrtm(kx)
+    return np.trace(sqrtm(kx_half @ ky @ kx_half))
+
+
+def bures(rep1, rep2, conv_trick="none"):
+    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=True, scale=True)
+    # Compute (Linear) kernels
+    kx = np.einsum("i...,j...->ij", rep1, rep1)
+    ky = np.einsum("i...,j...->ij", rep2, rep2)
+    # Compute Bures similarity
+    norm_x = np.trace(kx)
+    norm_y = np.trace(ky)
+    return fidelity(kx, ky) / np.sqrt(norm_x * norm_y)
+
+
+def rdm(rep, q: float = 1.0):
+    """Pairwise euclidean distance raised to the power q"""
+    xxT = np.einsum("i...,j...->ij", rep, rep)
+    d = np.diag(xxT)
+    sq_dist = np.clip(d[None, :] + d[:, None] - 2 * xxT, 0.0)
+    return sq_dist ** (q / 2.0)
+
+
+def rsa_cosine(rep1, rep2, conv_trick="none", q: float = 1.0, center=False):
+    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=False, scale=False)
+    rdm1 = rdm(rep1, q=q)
+    rdm2 = rdm(rep2, q=q)
+    if center:
+        rdm1 = double_center(rdm1)
+        rdm2 = double_center(rdm2)
+    rdm1 = rdm1 / np.sqrt(np.sum(rdm1**2))
+    rdm2 = rdm2 / np.sqrt(np.sum(rdm2**2))
+    return np.sum(rdm1 * rdm2)
+
+
+def regression_mse(x, y, bias=True, procrustes=False):
+    """Solve for w such that y ≈ x @ w, then return average error per m per n. If procrustes=True,
+    w is constrained to be orthonormal.
+    """
+    if bias:
+        # Rather than compute a bias term, we'll just empirically center both x and y so that
+        # the bias term is zero.
+        x = x - x.mean(axis=0, keepdims=True)
+        y = y - y.mean(axis=0, keepdims=True)
+
+    if procrustes:
+        # Procrustes solution (orthonormal w) maximizes Tr(y.T @ x @ w). Since Tr(A.T @ A) is the
+        # Frobenius inner-product, this is equivalent to finding w that maximally aligns with x.T@y,
+        # i.e. the UV components of the SVD of x.T @ y.
+        u, _, vh = np.linalg.svd(x.T @ y)
+        w = u @ vh
+    else:
+        w = np.linalg.lstsq(x, y, rcond=-1)[0]
+
+    y_pred = x @ w
+    return np.mean((y - y_pred) ** 2)
