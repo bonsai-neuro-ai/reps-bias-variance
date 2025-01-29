@@ -18,6 +18,7 @@ comparators = {
     "brownian_cka": partial(cka, debias="none", kernel="brownian"),
     "debiased_brownian_cka": partial(cka, debias="song", kernel="brownian"),
     "regression": regression_mse,
+    "regression_rotation": partial(regression_mse, procrustes=True),
 }
 
 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
         help="Flag to add Poisson noise. If 0.0, no noise added. "
         "Otherwise, neural activity is multiplied by poisson_scale and sampled from a poisson.",
     )
-    parser.add_argument("--repeats", type=int, default=20)
+    parser.add_argument("--repeats", type=int, default=10)
     parser.add_argument("--pool", type=int, default=-1)
     parser.add_argument("--plot", action="store_true")
 
@@ -158,16 +159,35 @@ if __name__ == "__main__":
     # Rename the 'values' column to the comparator name
     results_df[comp_name] = results_df.pop("value")
 
-    x_axis = "m" if len(args.m) > 1 else "n"
+    if len(args.m) > 1:
+        x_axis = "m"
+        keys = {
+            "d": args.d,
+            "n": args.n[0],
+            "noise": f"Poisson(x{args.poisson_scale})" if args.poisson_scale else "none",
+        }
+    elif len(args.n) > 1:
+        x_axis = "n"
+        keys = {
+            "d": args.d,
+            "m": args.m[0],
+            "noise": f"Poisson(x{args.poisson_scale})" if args.poisson_scale else "none",
+        }
+    else:
+        raise ValueError("Must supply either --m or --n as a single scalar and vary the other")
 
     if args.plot:
         hue_by = ", ".join(dict_difference(*kwargs)[0].keys())
 
         plt.figure()
         sns.lineplot(data=results_df, x=x_axis, y=comp_name, hue=hue_by)
-        plt.title(f"{comp_name} vs {x_axis}, latent dim={args.d}")
+        plt.title(
+            f"{comp_name} vs {x_axis}, " + ", ".join(str(k) + "=" + str(v) for k, v in keys.items())
+        )
         plt.xscale("log")
         plt.savefig(
-            f"plots/{args.mode}_{args.comparator}_vs_{x_axis}_{args.d}d_noise{args.poisson_scale}.png"
+            f"plots/{args.mode}_{args.comparator}_vs_{x_axis}_"
+            + "_".join(str(k) + str(v) for k, v in keys.items())
+            + ".png"
         )
         try_plot()

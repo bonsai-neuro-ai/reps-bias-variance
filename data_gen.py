@@ -30,7 +30,7 @@ class DataGenBase(ABC):
 
         activations = self.tuning(z)
 
-        if self.poisson_scale is None:
+        if self.poisson_scale is None or self.poisson_scale < 1e-9:
             return activations
         else:
             return self.rng.poisson(self.poisson_scale * activations)

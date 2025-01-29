@@ -127,10 +127,7 @@ def regression_mse(x, y, bias=True, procrustes=False):
     w is constrained to be orthonormal.
     """
     if bias:
-        # Rather than compute a bias term, we'll just empirically center both x and y so that
-        # the bias term is zero.
-        x = x - x.mean(axis=0, keepdims=True)
-        y = y - y.mean(axis=0, keepdims=True)
+        x, y = prep_reps(x, y, center=True, scale=False)
 
     if procrustes:
         # Procrustes solution (orthonormal w) maximizes Tr(y.T @ x @ w). Since Tr(A.T @ A) is the
