@@ -97,7 +97,7 @@ def procrustes(rep1, rep2, conv_trick="none"):
 
 def sqrtm(A):
     e, v = np.linalg.eigh(A)
-    return v @ np.diag(np.sqrt(np.clip(e, 0))) @ v.T
+    return v @ np.diag(np.sqrt(np.clip(e, 0, None))) @ v.T
 
 
 def fidelity(kx, ky):
@@ -108,8 +108,8 @@ def fidelity(kx, ky):
 def bures(rep1, rep2, conv_trick="none"):
     rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=True, scale=True)
     # Compute (Linear) kernels
-    kx = np.einsum("i...,j...->ij", rep1, rep1)
-    ky = np.einsum("i...,j...->ij", rep2, rep2)
+    kx = np.einsum("if,jf->ij", rep1, rep1)
+    ky = np.einsum("if,jf->ij", rep2, rep2)
     # Compute Bures similarity
     norm_x = np.trace(kx)
     norm_y = np.trace(ky)
@@ -118,9 +118,9 @@ def bures(rep1, rep2, conv_trick="none"):
 
 def rdm(rep, q: float = 1.0):
     """Pairwise euclidean distance raised to the power q"""
-    xxT = np.einsum("i...,j...->ij", rep, rep)
+    xxT = np.einsum("if,jf->ij", rep, rep)
     d = np.diag(xxT)
-    sq_dist = np.clip(d[None, :] + d[:, None] - 2 * xxT, 0.0)
+    sq_dist = np.clip(d[None, :] + d[:, None] - 2 * xxT, 0.0, None)
     return sq_dist ** (q / 2.0)
 
 
