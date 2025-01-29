@@ -35,7 +35,7 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 
 ## Results (all using 1D latent and radial basis tuning)
 
-### Asymptotic behavior of each metric as number of trials (m) increases, noiseless case
+### Results vs m for n=1000, no noise
 
 ![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisenone.png)
 ![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisenone.png)
@@ -44,7 +44,7 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 ![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisenone.png)
 ![](plots/radial_basis_regression_vs_m_d1_n1000_noisenone.png)
 
-### Asymptotic behavior of each metric as number of neurons (n) increases, noiseless case
+### Results vs n for m=5000, no noise
 
 ![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisenone.png)
 ![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisenone.png)
@@ -53,7 +53,7 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 ![](plots/radial_basis_debiased_brownian_cka_vs_n_d1_m5000_noisenone.png)
 ![](plots/radial_basis_regression_vs_n_d1_m5000_noisenone.png)
 
-### Asymptotic behavior of each metric as number of trials (m) increases, including poisson noise
+### Results vs m for n=1000, Poisson noise
 
 ![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisePoisson(x50.0).png)
 ![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
@@ -62,7 +62,7 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 ![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
 ![](plots/radial_basis_regression_vs_m_d1_n1000_noisePoisson(x50.0).png)
 
-### Asymptotic behavior of each metric as number of neurons (n) increases, including poisson noise
+### Results vs n for m=5000, Poisson noise
 
 ![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisePoisson(x50.0).png)
 ![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)

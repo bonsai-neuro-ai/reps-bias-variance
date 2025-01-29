@@ -21,6 +21,8 @@ comparators = {
     "regression_rotation": partial(regression_mse, procrustes=True),
 }
 
+sns.set_theme(font_scale=0.5)
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -112,7 +114,7 @@ if __name__ == "__main__":
 
     if args.plot:
         with torch.no_grad():
-            fig, axs = plt.subplots(1, 2, figsize=(8, 4))
+            fig, axs = plt.subplots(1, 2, figsize=(6, 3))
             for kw in kwargs:
                 data_gen = data_gen_class(**kw)
                 z, x = plot_tuning(data_gen, ax=axs[0], label=str(unique_keys(kw, kwargs)))
@@ -127,6 +129,7 @@ if __name__ == "__main__":
             axs[1].set_title("Population covariance spectrum")
             axs[1].legend()
 
+            plt.tight_layout()
             plt.savefig(
                 f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png",
             )
@@ -188,10 +191,8 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(3, 2))
         sns.lineplot(data=results_df, x=x_axis, y=comp_name, hue=hue_by)
-        plt.title(
-            f"{comp_name} vs {x_axis}, " + ", ".join(str(k) + "=" + str(v) for k, v in keys.items())
-        )
         plt.xscale("log")
+        plt.tight_layout()
         plt.savefig(
             f"plots/{args.mode}_{args.comparator}_vs_{x_axis}_"
             + "_".join(str(k) + str(v) for k, v in keys.items())
