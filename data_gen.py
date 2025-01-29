@@ -112,10 +112,10 @@ class PowerLawFourierSynthesisNeurons(DataGenBase):
 
         # Project features to neurons and phase shift all at once
         activations = torch.einsum(
-            "mf,fn,fn->mn", features, self.phase_shift, self.proj_features_to_neurons
+            "mf,fn,fn->mn", features, self.phase_shift, self.proj_features_to_neurons + 0j
         ).real
 
-        return activations
+        return torch.nn.functional.softplus(activations)
 
 
 class RadialBasisNeurons(DataGenBase):

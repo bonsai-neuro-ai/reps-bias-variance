@@ -17,9 +17,10 @@ from comparators import (
 _PRECISION = 6
 
 
-def _dummy_reps(m, nx, ny):
-    x = torch.randn(m, nx) + torch.abs(torch.randn(1, nx))
-    y = torch.randn(m, ny) + torch.abs(torch.randn(1, ny))
+def _dummy_reps(m, n):
+    z = torch.randn(m, n)
+    x = z @ torch.randn(n, n) + torch.abs(torch.randn(1, n)) + torch.randn(m, n) * 0.1
+    y = z @ torch.randn(n, n) + torch.abs(torch.randn(1, n)) + torch.randn(m, n) * 0.1
     # For the purposes of testing, we'll use double precision. Single precision will then be close
     # enough for actual calculations
     return x.double(), y.double()
@@ -27,7 +28,7 @@ def _dummy_reps(m, nx, ny):
 
 class TestPrepReps(unittest.TestCase):
     def test_no_center_no_scale(self):
-        x, y = _dummy_reps(m=100, nx=10, ny=10)
+        x, y = _dummy_reps(m=100, n=10)
         x2, y2 = prep_reps(x, y, center=False, scale=False)
 
         # Assert x and y are unchanged
@@ -40,7 +41,7 @@ class TestPrepReps(unittest.TestCase):
         npt.assert_raises(AssertionError, npt.assert_array_equal, y, y2)
 
     def test_center_no_scale(self):
-        x, y = _dummy_reps(m=100, nx=10, ny=10)
+        x, y = _dummy_reps(m=100, n=10)
         x2, y2 = prep_reps(x, y, center=True, scale=False)
 
         # Assert x and y do not have mean zero
@@ -57,7 +58,7 @@ class TestPrepReps(unittest.TestCase):
 
     def test_center_m_equals_n(self):
         # Checking the 'keepdim' aspect of centering
-        x, y = _dummy_reps(m=10, nx=10, ny=10)
+        x, y = _dummy_reps(m=10, n=10)
         x2, y2 = prep_reps(x, y, center=True, scale=False)
 
         # Assert x2 and y2 have mean zero *along axis 0*
@@ -65,7 +66,7 @@ class TestPrepReps(unittest.TestCase):
         npt.assert_array_almost_equal(y2.mean(dim=0), torch.zeros(10), decimal=_PRECISION)
 
     def test_no_center_scale(self):
-        x, y = _dummy_reps(m=100, nx=10, ny=10)
+        x, y = _dummy_reps(m=100, n=10)
         x2, y2 = prep_reps(x, y, center=False, scale=True)
 
         # Assert there was a change
@@ -77,7 +78,7 @@ class TestPrepReps(unittest.TestCase):
         npt.assert_almost_equal(torch.linalg.norm(y2, ord="fro"), 1.0)
 
     def test_center_scale(self):
-        x, y = _dummy_reps(m=100, nx=10, ny=10)
+        x, y = _dummy_reps(m=100, n=10)
         x2, y2 = prep_reps(x, y, center=True, scale=True)
 
         # Assert there was a change
@@ -95,7 +96,7 @@ class TestPrepReps(unittest.TestCase):
 
 class TestDoubleCenter(unittest.TestCase):
     def test_linear_kernel(self):
-        x, _ = _dummy_reps(m=100, nx=10, ny=10)
+        x, _ = _dummy_reps(m=100, n=10)
 
         gram_x = torch.einsum("in,jn->ij", x, x)
         centered_gram_x = double_center(gram_x)
@@ -109,7 +110,7 @@ class TestDoubleCenter(unittest.TestCase):
 class TestMetricRelations(unittest.TestCase):
 
     def _test_metrics_agree_helper(self, metric1: Callable, metric2: Callable):
-        x, y = _dummy_reps(m=100, nx=10, ny=10)
+        x, y = _dummy_reps(m=100, n=10)
         similarity1 = metric1(x, y)
         similarity2 = metric2(x, y)
 
