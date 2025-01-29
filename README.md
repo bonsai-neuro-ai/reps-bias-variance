@@ -46,12 +46,12 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 
 ### Results vs n for m=5000, no noise
 
-![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisenone.png)
-![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisenone.png)
-![](plots/radial_basis_debiased_linear_cka_vs_n_d1_m5000_noisenone.png)
-![](plots/radial_basis_brownian_cka_vs_n_d1_m5000_noisenone.png)
-![](plots/radial_basis_debiased_brownian_cka_vs_n_d1_m5000_noisenone.png)
-![](plots/radial_basis_regression_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_procrustes_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_linear_cka_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_linear_cka_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_regression_vs_num_neurons_d1_m5000_noisenone.png)
 
 ### Results vs m for n=1000, Poisson noise
 
@@ -64,12 +64,12 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 
 ### Results vs n for m=5000, Poisson noise
 
-![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_linear_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_brownian_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_brownian_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_regression_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_procrustes_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_linear_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_linear_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_regression_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
 
 ## Method details
 
