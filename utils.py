@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+
+
 def dict_difference(*dicts):
     sets = [set(d.items()) for d in dicts]
     overlap = sets[0]
@@ -15,3 +18,10 @@ def update_dict(d, **new_values):
     for k, v in new_values.items():
         new_d[k] = v
     return new_d
+
+
+def try_plot():
+    try:
+        plt.show()
+    except:
+        pass

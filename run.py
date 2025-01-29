@@ -9,7 +9,7 @@ import seaborn as sns
 
 from comparators import procrustes, cka, regression_mse
 from data_gen import PowerLawFourierSynthesisNeurons, RadialBasisNeurons, DataGenBase
-from utils import unique_keys, dict_difference, update_dict
+from utils import unique_keys, dict_difference, update_dict, try_plot
 
 comparators = {
     "procrustes": procrustes,
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         axs[1].legend()
 
         plt.savefig(f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png")
-        plt.show()
+        try_plot()
 
     # Sanity-check a mini job before running in parallel
     run_job(
@@ -170,4 +170,4 @@ if __name__ == "__main__":
         plt.savefig(
             f"plots/{args.mode}_{args.comparator}_vs_{x_axis}_{args.d}d_noise{args.poisson_scale}.png"
         )
-        plt.show()
+        try_plot()

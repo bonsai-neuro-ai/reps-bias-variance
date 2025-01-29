@@ -18,6 +18,7 @@ for cmp in "${COMPARATORS[@]}"; do
     --m 10 30 100 300 1000 3000 10000 \
     --n 1000 \
     --pool 32 \
+    --plot \
     radial_basis \
     --bandwidth 0.1 0.3 0.5
 
@@ -27,6 +28,7 @@ for cmp in "${COMPARATORS[@]}"; do
     --m 5000 \
     --n 10 30 100 300 1000 3000 5000 10000 \
     --pool 32 \
+    --plot \
     radial_basis \
     --bandwidth 0.1 0.3 0.5
 done
