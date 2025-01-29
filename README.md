@@ -41,19 +41,19 @@ TODO
 
 The following neural (dis)similarity metrics are implemented in `comparators.py`:
 
-| Metric name                                               | Function call                                | Equation                                                                                                        |
-|-----------------------------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| Normalized Procrustes                                     | `procrustes(x, y)`                           | $\frac{\|\|\Sigma_{XY}\|\|_*}{\sqrt{Tr(\Sigma_{X})Tr(\Sigma_{Y})}}$                                             |
-| Normalized Bures Similarity                               | `bures(x, y)`                                | $\frac{\mathcal{F}(K_X, K_Y)}{\sqrt{Tr(K_X)*Tr(K_Y)}}$                                                          |
-| Unbiased Linear CKA                                       | `cka(x, y, debias="song", kernel="linear")`  | This is CKA with the unbiased estimator of HSIC (Song et al 2007) under the hood                                |
-| Less-biased Linear CKA                                    | `cka(x, y, debias="lange", kernel="linear")` | This is CKA with a $O(m^-2)$ HSIC estimator (Lange et al 2022) under the hood                                   |
-| Linear CKA                                                | `cka(x, y, debias="none", kernel="linear")`  | This is classic Linear CKA                                                                                      |
-| Brownian CKA                                              | `cka(x, y, debias=..., kernel="brownian")`   | CKA with a Brownian kernel to match the behavior of RSA on Euclidean RDMs. Same options for debiasing as above. |
-| RSA (cosine similarity of doubly-centered Euclidean RDMs) | `rsa_cosine(x, y, q=1.0, center=True)`       | $\frac{\langle{H D_X H, H D_Y H}\rangle}{\sqrt{\|\|H D_X H\|\|_F \sqrt{\|\|H D_Y H\|\|_F}}$                     |
-| RSA (cosine similarity of non-centered Euclidean RDMs)    | `rsa_cosine(x, y, q=1.0, center=False)`      | $\frac{\langle{D_X, D_Y}\rangle}{\sqrt{\|\|D_X\|\|_F \sqrt{\|\|D_Y\|\|_F}}$                                     |
-| RSA (cosine similarity of Squared-Euclidean RDMs)         | `rsa_cosine(x, y, q=2.0, center=...)`        | $\frac{\langle{D^2_X, D^2_Y}\rangle}{\sqrt{\|\|D^2_X\|\|_F \sqrt{\|\|D^2_Y\|\|_F}}$                             |
-| Regression mean squared error                             | `regression_mse(x, y)`                       | $\frac{1}{mn}\|\|Y-XW\|\|^2_F\|\|$ where $W$ is the least-error solution                                        |
-| Orthogonal regression mean squared error                  | `regression_mse(x, y, procrustes=True)`      | $\frac{1}{mn}\|\|Y-XQ\|\|^2_F\|\|$ where $Q$ is the least-error orthonormal solution                            |
+| Metric name                                               | Function call                                | Equation                                                                                                                   |
+|-----------------------------------------------------------|----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| Normalized Procrustes                                     | `procrustes(x, y)`                           | $\frac{\vert\vert \Sigma_{XY}\vert\vert_*}{\sqrt{Tr(\Sigma_{X})Tr(\Sigma_{Y})}}$                                           |
+| Normalized Bures Similarity                               | `bures(x, y)`                                | $\frac{\mathcal{F}(K_X, K_Y)}{\sqrt{Tr(K_X)*Tr(K_Y)}}$                                                                     |
+| Unbiased Linear CKA                                       | `cka(x, y, debias="song", kernel="linear")`  | This is CKA with the unbiased estimator of HSIC (Song et al 2007) under the hood                                           |
+| Less-biased Linear CKA                                    | `cka(x, y, debias="lange", kernel="linear")` | This is CKA with a $O(m^{-2})$ HSIC estimator (Lange et al 2022) under the hood                                            |
+| Linear CKA                                                | `cka(x, y, debias="none", kernel="linear")`  | This is classic Linear CKA which uses an $O(m^{-1})$ biased estimator under the hood                                       |
+| Brownian CKA                                              | `cka(x, y, debias=..., kernel="brownian")`   | CKA with a Brownian kernel to match the behavior of RSA on Euclidean RDMs. Same options for debiasing as above.            |
+| RSA (cosine similarity of doubly-centered Euclidean RDMs) | `rsa_cosine(x, y, q=1.0, center=True)`       | $\frac{\langle{H D_X H, H D_Y H}\rangle}{\sqrt{\vert\vert H D_X H\vert\vert_F \vert\vert H D_Y H\vert\vert_F}}$            |
+| RSA (cosine similarity of non-centered Euclidean RDMs)    | `rsa_cosine(x, y, q=1.0, center=False)`      | $\frac{\langle{D_X, D_Y}\rangle}{\sqrt{\vert\vert D_X\vert\vert_F \vert\vert D_Y\vert\vert_F}}$                            |
+| RSA (cosine similarity of Squared-Euclidean RDMs)         | `rsa_cosine(x, y, q=2.0, center=...)`        | $\frac{\langle{D^2_X, D^2_Y}\rangle}{\sqrt{\vert\vert D^2_X\vert\vert_F \vert\vert D^2_Y\vert\vert_F}}$                    |
+| Regression mean squared error                             | `regression_mse(x, y)`                       | $\frac{1}{mn}\vert\vert Y-XW\vert\vert^2_F$ where $W$ is the least-error solution, and both $X$ and $Y$ have been centered |
+| Orthogonal regression mean squared error                  | `regression_mse(x, y, procrustes=True)`      | Likewise, but $W$ is constrained to be an orthonormal matrix                                                               |
 
 where
 
