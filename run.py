@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     if args.plot:
         with torch.no_grad():
-            fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+            fig, axs = plt.subplots(1, 2, figsize=(8, 4))
             for kw in kwargs:
                 data_gen = data_gen_class(**kw)
                 z, x = plot_tuning(data_gen, ax=axs[0], label=str(unique_keys(kw, kwargs)))
@@ -128,7 +128,7 @@ if __name__ == "__main__":
             axs[1].legend()
 
             plt.savefig(
-                f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png"
+                f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png",
             )
             try_plot()
 
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     if args.plot:
         hue_by = ", ".join(dict_difference(*kwargs)[0].keys())
 
-        plt.figure()
+        plt.figure(figsize=(3, 2))
         sns.lineplot(data=results_df, x=x_axis, y=comp_name, hue=hue_by)
         plt.title(
             f"{comp_name} vs {x_axis}, " + ", ".join(str(k) + "=" + str(v) for k, v in keys.items())
