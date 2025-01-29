@@ -1,32 +1,22 @@
 import numpy as np
-from typing import Optional
 
 
-def transpose_space_to_batch(conv_rep):
-    b, c, h, w = conv_rep.shape
-    return conv_rep.permute(0, 2, 3, 1).reshape(b * h * w, c)
+def prep_reps(rep1, rep2, center=True, scale=True):
+    if rep1.ndim != 2 or rep2.ndim != 2 or rep2.shape[0] != rep1.shape[0]:
+        raise ValueError("rep1 and rep2 must have shapes (m, n1) and (m, n2)")
 
+    rep1 = rep1.copy()
+    rep2 = rep2.copy()
 
-def prep_reps(rep1, rep2, center=True, scale=True, conv_trick="none"):
-    m = rep1.shape[0]
     if center:
-        rep1 = rep1 - np.mean(rep1, axis=0)
-        rep2 = rep2 - np.mean(rep2, axis=0)
+        rep1 = rep1 - np.mean(rep1, axis=0, keepdims=True)
+        rep2 = rep2 - np.mean(rep2, axis=0, keepdims=True)
 
     if scale:
+        # Make the full data matrix unit Frobenius norm
         rep1 = rep1 / np.sqrt(np.sum(rep1**2))
         rep2 = rep2 / np.sqrt(np.sum(rep2**2))
 
-    if conv_trick == "none":
-        # Flatten spatial and channel dimensions -> (b, h*w*c)
-        rep1 = rep1.reshape(m, -1)
-        rep2 = rep2.reshape(m, -1)
-    elif conv_trick == "transpose":
-        # Constrain rotations to corresponding spatial locations -> (b*h*w, c)
-        rep1 = transpose_space_to_batch(rep1)
-        rep2 = transpose_space_to_batch(rep2)
-    else:
-        raise ValueError("Unknown conv_trick")
     return rep1, rep2
 
 
@@ -38,9 +28,7 @@ def double_center(k):
 
 def hsic(x, y, debias="none", kernel="linear"):
     if kernel == "linear":
-        # Center
-        x = x - np.mean(x, axis=0)
-        y = y - np.mean(y, axis=0)
+        x, y = prep_reps(x, y, center=True, scale=False)
         # Compute (Linear) HSIC
         kx = np.einsum("if,jf->ij", x, x)
         ky = np.einsum("if,jf->ij", y, y)
@@ -63,7 +51,7 @@ def hsic(x, y, debias="none", kernel="linear"):
     if debias == "none":
         return np.sum(kx * ky) / (m * (m - 1))
     elif debias == "lange":
-        i, j = np.triu_indices(m, m, 1)
+        i, j = np.triu_indices(n=m, m=m, k=1)
         return np.sum(kx[i, j] * ky[i, j]) * 2 / (m * (m - 3))
     elif debias == "song":
         # Zero the diagonal
@@ -77,26 +65,25 @@ def hsic(x, y, debias="none", kernel="linear"):
         raise ValueError("Unknown debias")
 
 
-def cka(rep1, rep2, debias="none", conv_trick="none", kernel="linear"):
-    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=False, scale=False)
-    return hsic(rep1, rep2, debias, kernel) / np.sqrt(
-        hsic(rep1, rep1, debias, kernel) * hsic(rep2, rep2, debias, kernel)
-    )
+def cka(rep1, rep2, debias="none", kernel="linear"):
+    hsic12 = hsic(rep1, rep2, debias=debias, kernel=kernel)
+    hsic11 = hsic(rep1, rep1, debias=debias, kernel=kernel)
+    hsic22 = hsic(rep2, rep2, debias=debias, kernel=kernel)
+    return hsic12 / np.sqrt(hsic11 * hsic22)
 
 
-def procrustes(rep1, rep2, conv_trick="none"):
-    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=True, scale=True)
-    # Compute Procrustes similarity using nuclear norm trick. Note that norm
-    # on the covariance (e.g. 1/m or 1/(m-1)) is irrelevant because canceled
-    # in the last line.
-    cov_xy = np.einsum("bi,bj->ij", rep1, rep2)
+def procrustes(rep1, rep2):
+    rep1, rep2 = prep_reps(rep1, rep2, center=True, scale=True)
+    # Compute Procrustes similarity using nuclear norm trick. Note that norm on the covariance (
+    # e.g. 1/m or 1/(m-1)) is irrelevant because canceled in the last line.
+    cov_xy = np.einsum("mi,mj->ij", rep1, rep2)
     trace_cov_x = np.sum(rep1**2)
     trace_cov_y = np.sum(rep2**2)
     return np.linalg.matrix_norm(cov_xy, ord="nuc") / np.sqrt(trace_cov_x * trace_cov_y)
 
 
-def sqrtm(A):
-    e, v = np.linalg.eigh(A)
+def sqrtm(mat):
+    e, v = np.linalg.eigh(mat)
     return v @ np.diag(np.sqrt(np.clip(e, 0, None))) @ v.T
 
 
@@ -105,8 +92,8 @@ def fidelity(kx, ky):
     return np.trace(sqrtm(kx_half @ ky @ kx_half))
 
 
-def bures(rep1, rep2, conv_trick="none"):
-    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=True, scale=True)
+def bures(rep1, rep2):
+    rep1, rep2 = prep_reps(rep1, rep2, center=True, scale=True)
     # Compute (Linear) kernels
     kx = np.einsum("if,jf->ij", rep1, rep1)
     ky = np.einsum("if,jf->ij", rep2, rep2)
@@ -124,8 +111,7 @@ def rdm(rep, q: float = 1.0):
     return sq_dist ** (q / 2.0)
 
 
-def rsa_cosine(rep1, rep2, conv_trick="none", q: float = 1.0, center=False):
-    rep1, rep2 = prep_reps(rep1, rep2, conv_trick=conv_trick, center=False, scale=False)
+def rsa_cosine(rep1, rep2, q: float = 1.0, center=False):
     rdm1 = rdm(rep1, q=q)
     rdm2 = rdm(rep2, q=q)
     if center:
