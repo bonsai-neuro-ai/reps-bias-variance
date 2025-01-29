@@ -2,8 +2,8 @@ import argparse
 from functools import partial
 
 import joblib
+import torch
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -22,14 +22,18 @@ comparators = {
 }
 
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+@torch.no_grad()
 def run_job(cls, run_id, comparator, m, **constructor_kwargs):
-    x_fn = cls(**constructor_kwargs)
-    y_fn = cls(**constructor_kwargs)
-    z = np.random.uniform(-1, 1, size=(m, constructor_kwargs["latent_dim"]))
+    x_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((126869, run_id, m, constructor_kwargs["num_neurons"], constructor_kwargs["latent_dim"])))
+    y_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((567879, run_id, m, constructor_kwargs["num_neurons"], constructor_kwargs["latent_dim"])))
+    z = torch.rand(size=(m, constructor_kwargs["latent_dim"]), device=DEVICE) * 2 - 1
     x = x_fn(z)
     y = y_fn(z)
 
-    return dict(m=m, value=comparator(x, y), run=run_id, **constructor_kwargs)
+    return dict(m=m, value=comparator(x, y).item(), run=run_id, **constructor_kwargs)
 
 
 def plot_tuning(gen: DataGenBase, ax=None, num_neurons: int = 1, label=None):
@@ -37,8 +41,8 @@ def plot_tuning(gen: DataGenBase, ax=None, num_neurons: int = 1, label=None):
 
     is_noisy = gen.poisson_scale is not None and gen.poisson_scale > 0.0
 
-    z = np.zeros((1000, gen.latent_dim))
-    z[:, 0] = np.linspace(-1, 1, 1000)
+    z = torch.zeros((1000, gen.latent_dim))
+    z[:, 0] = torch.linspace(-1, 1, 1000)
     activity = gen(z)
     ax.plot(z, activity[:, :num_neurons], "." if is_noisy else "-", label=label)
 
@@ -89,7 +93,7 @@ if __name__ == "__main__":
 
     kwargs_base = {
         "latent_dim": args.d,
-        "num_neurons": args.n[0],
+        "num_neurons": args.n[-1],
         "poisson_scale": args.poisson_scale,
     }
 
@@ -107,23 +111,26 @@ if __name__ == "__main__":
     del kwargs_base
 
     if args.plot:
-        fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-        for kw in kwargs:
-            data_gen = data_gen_class(**kw)
-            z, x = plot_tuning(data_gen, ax=axs[0], label=str(unique_keys(kw, kwargs)))
-            cov = np.cov(x.T)
-            descending_eigs = np.linalg.eigvalsh(cov)[::-1]
-            axs[1].plot(descending_eigs, label=str(unique_keys(kw, kwargs)))
+        with torch.no_grad():
+            fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+            for kw in kwargs:
+                data_gen = data_gen_class(**kw)
+                z, x = plot_tuning(data_gen, ax=axs[0], label=str(unique_keys(kw, kwargs)))
+                cov = torch.cov(x.T)
+                descending_eigs = torch.linalg.eigvalsh(cov).numpy()[::-1]
+                axs[1].plot(descending_eigs, label=str(unique_keys(kw, kwargs)))
 
-        axs[1].set_xlabel("eigenvalue index")
-        axs[1].set_ylabel("eigenvalue")
-        axs[1].set_yscale("log")
-        axs[1].set_xscale("log")
-        axs[1].set_title("Population covariance spectrum")
-        axs[1].legend()
+            axs[1].set_xlabel("eigenvalue index")
+            axs[1].set_ylabel("eigenvalue")
+            axs[1].set_yscale("log")
+            axs[1].set_xscale("log")
+            axs[1].set_title("Population covariance spectrum")
+            axs[1].legend()
 
-        plt.savefig(f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png")
-        try_plot()
+            plt.savefig(
+                f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png"
+            )
+            try_plot()
 
     # Sanity-check a mini job before running in parallel
     run_job(
@@ -167,7 +174,7 @@ if __name__ == "__main__":
             "noise": f"Poisson(x{args.poisson_scale})" if args.poisson_scale else "none",
         }
     elif len(args.n) > 1:
-        x_axis = "n"
+        x_axis = "num_neurons"
         keys = {
             "d": args.d,
             "m": args.m[0],
