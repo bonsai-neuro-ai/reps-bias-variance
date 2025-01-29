@@ -33,9 +33,43 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 
 ![Example tuning curves to 1D z using 'radial basis' method and `poisson_scale=50.0`](plots/example_neurons_radial_basis_1d_noise50.0.png)
 
-## Results
+## Results (all using 1D latent and radial basis tuning)
 
-TODO
+### Asymptotic behavior of each metric as number of trials (m) increases, noiseless case
+
+![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisenone.png)
+![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisenone.png)
+![](plots/radial_basis_debiased_linear_cka_vs_m_d1_n1000_noisenone.png)
+![](plots/radial_basis_brownian_cka_vs_m_d1_n1000_noisenone.png)
+![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisenone.png)
+![](plots/radial_basis_regression_vs_m_d1_n1000_noisenone.png)
+
+### Asymptotic behavior of each metric as number of neurons (n) increases, noiseless case
+
+![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_linear_cka_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_brownian_cka_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_brownian_cka_vs_n_d1_m5000_noisenone.png)
+![](plots/radial_basis_regression_vs_n_d1_m5000_noisenone.png)
+
+### Asymptotic behavior of each metric as number of trials (m) increases, including poisson noise
+
+![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisePoisson(x50.0).png)
+![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_linear_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
+![](plots/radial_basis_brownian_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
+![](plots/radial_basis_regression_vs_m_d1_n1000_noisePoisson(x50.0).png)
+
+### Asymptotic behavior of each metric as number of neurons (n) increases, including poisson noise
+
+![](plots/radial_basis_procrustes_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_linear_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_linear_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_brownian_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_debiased_brownian_cka_vs_n_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_regression_vs_n_d1_m5000_noisePoisson(x50.0).png)
 
 ## Method details
 
