@@ -216,6 +216,19 @@ if __name__ == "__main__":
         plt.figure(figsize=(3, 2))
         sns.lineplot(data=results_df, x=x_axis, y=comp_name, hue=hue_by)
         plt.xscale("log")
+        if args.comparator in {"regression", "regression_rotation"}:
+            plt.yscale("log")
+            if (args.poisson_scale is not None) and (args.poisson_scale > 0.0):
+                # Poisson variance scales with the mean. We expect regression error to be limited
+                # by external noise. Scale y-axis with scale of noise.
+                plt.ylim(None, args.poisson_scale)
+            else:
+                # In noiseless case, all neural activity is in [0, 1]. Errors > 1 indicate some
+                # stability issues, perhaps.
+                plt.ylim(None, 1.0)
+        else:
+            plt.ylim(0.0, 1.0)
+
         plt.tight_layout()
         plt.savefig(
             f"plots/{args.mode}_{args.comparator}_vs_{x_axis}_"
