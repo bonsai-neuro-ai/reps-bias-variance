@@ -9,6 +9,7 @@ COMPARATORS=(
   brownian_cka
   debiased_brownian_cka
   regression
+  regression_rotation
 )
 
 for cmp in "${COMPARATORS[@]}"; do

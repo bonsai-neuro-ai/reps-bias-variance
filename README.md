@@ -54,6 +54,7 @@ populuations, and (3) otherwise not adding any further noise.__
 ![](plots/radial_basis_brownian_cka_vs_m_d1_b1_n1000_noisenone.png)
 ![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_b1_n1000_noisenone.png)
 ![](plots/radial_basis_regression_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_regression_rotation_vs_m_d1_b1_n1000_noisenone.png)
 
 ### Results vs n for m=5000
 
@@ -63,6 +64,7 @@ populuations, and (3) otherwise not adding any further noise.__
 ![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
 ![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
 ![](plots/radial_basis_regression_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_regression_rotation_vs_num_neurons_d1_b1_m5000_noisenone.png)
 
 ## Method details
 
