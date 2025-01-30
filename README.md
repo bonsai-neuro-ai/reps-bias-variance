@@ -6,7 +6,12 @@ Analysis of the asymptotic bias/variance behavior of neural (dis)similarity meth
 We'd like to simulate the responses of a pair of well-controlled but random populations of neurons 
 to some shared stimulus $z$. Convention for terminology is that we'll have $m$ trials where 
 $z \in [-1, +1]^d$ is drawn uniformly at random, and each of a population of $n$ neurons will 
-respond with some $f_i : [-1, +1]^d \rightarrow \mathbb{R}$.  
+respond with some $f_i : [-1, +1]^d \rightarrow \mathbb{R}$.
+
+The graphical model is like $z_x \rightarrow x \leftarrow z_{shared} \rightarrow y \leftarrow z_y$.
+That is, neural populations $x$ and $y$ are assumed to be tuned in part to the same dimensions of
+the stimulus $z$, inducing some representational similarity. Terminology in the code needs to be
+updated (in the code, total $z$ dimension is `d + extra_dims`, so `d` is just the shared part).
 
 In `data_gen.py` there are two classes:
 
@@ -33,43 +38,31 @@ as a _spike count_ from a poisson distribution with `rate = poisson_scale * f_i(
 
 ![Example tuning curves to 1D z using 'radial basis' method and `poisson_scale=50.0`](plots/example_neurons_radial_basis_1d_noise50.0.png)
 
-## Results (all using 1D latent and radial basis tuning)
+__Best and most interesting results so far seem to come from (1) using radial basis tuning, (2)
+splitting $z$ into shared and independent parts to induce a moderate level of correlation in the
+populuations, and (3) otherwise not adding any further noise.__
 
-### Results vs m for n=1000, no noise
+![Example tuning curves to 2D z, showing a 1D slice of the part that is 'shared'](plots/example_neurons_radial_basis_1d_1b_noise0.0.png)
 
-![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisenone.png)
-![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisenone.png)
-![](plots/radial_basis_debiased_linear_cka_vs_m_d1_n1000_noisenone.png)
-![](plots/radial_basis_brownian_cka_vs_m_d1_n1000_noisenone.png)
-![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisenone.png)
-![](plots/radial_basis_regression_vs_m_d1_n1000_noisenone.png)
+## Results (all using 2D latent with 1D shared, radial basis tuning, and Poisson noise disabled)
 
-### Results vs n for m=5000, no noise
+### Results vs m for n=1000
 
-![](plots/radial_basis_procrustes_vs_num_neurons_d1_m5000_noisenone.png)
-![](plots/radial_basis_linear_cka_vs_num_neurons_d1_m5000_noisenone.png)
-![](plots/radial_basis_debiased_linear_cka_vs_num_neurons_d1_m5000_noisenone.png)
-![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_m5000_noisenone.png)
-![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_m5000_noisenone.png)
-![](plots/radial_basis_regression_vs_num_neurons_d1_m5000_noisenone.png)
+![](plots/radial_basis_procrustes_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_linear_cka_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_debiased_linear_cka_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_brownian_cka_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_b1_n1000_noisenone.png)
+![](plots/radial_basis_regression_vs_m_d1_b1_n1000_noisenone.png)
 
-### Results vs m for n=1000, Poisson noise
+### Results vs n for m=5000
 
-![](plots/radial_basis_procrustes_vs_m_d1_n1000_noisePoisson(x50.0).png)
-![](plots/radial_basis_linear_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_linear_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
-![](plots/radial_basis_brownian_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_brownian_cka_vs_m_d1_n1000_noisePoisson(x50.0).png)
-![](plots/radial_basis_regression_vs_m_d1_n1000_noisePoisson(x50.0).png)
-
-### Results vs n for m=5000, Poisson noise
-
-![](plots/radial_basis_procrustes_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_linear_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_linear_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
-![](plots/radial_basis_regression_vs_num_neurons_d1_m5000_noisePoisson(x50.0).png)
+![](plots/radial_basis_procrustes_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_linear_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_linear_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_brownian_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_debiased_brownian_cka_vs_num_neurons_d1_b1_m5000_noisenone.png)
+![](plots/radial_basis_regression_vs_num_neurons_d1_b1_m5000_noisenone.png)
 
 ## Method details
 

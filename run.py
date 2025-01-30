@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
             plt.tight_layout()
             plt.savefig(
-                f"plots/example_neurons_{args.mode}_{args.d}d_noise{args.poisson_scale}.png",
+                f"plots/example_neurons_{args.mode}_{args.d}d_{args.extra_dims}b_noise{args.poisson_scale}.png",
             )
             try_plot()
 
