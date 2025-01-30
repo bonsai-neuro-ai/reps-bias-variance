@@ -15,44 +15,22 @@ for cmp in "${COMPARATORS[@]}"; do
   $PYTHON $SCRIPT \
     --comparator "$cmp" \
     --poisson-scale 0.0 \
-    --d 1 \
+    --d 1 --extra-dims 1 \
     --m 10 30 100 300 1000 3000 10000 \
     --n 1000 \
     --pool 8 \
     --plot \
     radial_basis \
-    --bandwidth 0.1 0.3 0.5
+    --bandwidth 0.15 0.45 0.75
 
   $PYTHON $SCRIPT \
     --comparator "$cmp" \
     --poisson-scale 0.0 \
-    --d 1 \
+    --d 1 --extra-dims 1 \
     --m 5000 \
     --n 10 30 100 300 1000 3000 \
     --pool 8 \
     --plot \
     radial_basis \
-    --bandwidth 0.1 0.3 0.5
-
-  $PYTHON $SCRIPT \
-    --comparator "$cmp" \
-    --poisson-scale 50.0 \
-    --d 1 \
-    --m 10 30 100 300 1000 3000 10000 \
-    --n 1000 \
-    --pool 8 \
-    --plot \
-    radial_basis \
-    --bandwidth 0.1 0.3 0.5
-
-  $PYTHON $SCRIPT \
-    --comparator "$cmp" \
-    --poisson-scale 50.0 \
-    --d 1 \
-    --m 5000 \
-    --n 10 30 100 300 1000 3000 \
-    --pool 8 \
-    --plot \
-    radial_basis \
-    --bandwidth 0.1 0.3 0.5
+    --bandwidth 0.15 0.45 0.75
 done

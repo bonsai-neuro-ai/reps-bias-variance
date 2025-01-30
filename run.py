@@ -28,12 +28,21 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 @torch.no_grad()
-def run_job(cls, run_id, comparator, m, **constructor_kwargs):
-    x_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((126869, run_id, m, constructor_kwargs["num_neurons"], constructor_kwargs["latent_dim"])))
-    y_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((567879, run_id, m, constructor_kwargs["num_neurons"], constructor_kwargs["latent_dim"])))
-    z = torch.rand(size=(m, constructor_kwargs["latent_dim"]), device=DEVICE) * 2 - 1
-    x = x_fn(z)
-    y = y_fn(z)
+def run_job(cls, run_id, comparator, m, shared_dim, **constructor_kwargs):
+    seed_tuple = (
+        run_id,
+        m,
+        shared_dim,
+        constructor_kwargs["num_neurons"],
+        constructor_kwargs["latent_dim"],
+    )
+    x_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((126869,) + seed_tuple))
+    y_fn = cls(**constructor_kwargs, device=DEVICE, seed=hash((567879,) + seed_tuple))
+    zx = torch.rand(size=(m, constructor_kwargs["latent_dim"]), device=DEVICE) * 2 - 1
+    zy = torch.rand(size=(m, constructor_kwargs["latent_dim"]), device=DEVICE) * 2 - 1
+    zy[:, :shared_dim] = zx[:, :shared_dim]
+    x = x_fn(zx)
+    y = y_fn(zy)
 
     return dict(m=m, value=comparator(x, y).item(), run=run_id, **constructor_kwargs)
 
@@ -46,7 +55,7 @@ def plot_tuning(gen: DataGenBase, ax=None, num_neurons: int = 1, label=None):
     z = torch.zeros((1000, gen.latent_dim))
     z[:, 0] = torch.linspace(-1, 1, 1000)
     activity = gen(z)
-    ax.plot(z, activity[:, :num_neurons], "." if is_noisy else "-", label=label)
+    ax.plot(z[:, 0], activity[:, :num_neurons], "." if is_noisy else "-", label=label)
 
     ax.set_xlabel("z")
     ax.set_ylabel("response")
@@ -64,7 +73,18 @@ if __name__ == "__main__":
     parser.add_argument("--comparator", choices=comparators.keys(), required=True)
     parser.add_argument("--m", type=int, default=[1000], nargs="+", help="Number of trials")
     parser.add_argument("--n", type=int, default=[1000], nargs="+", help="Number of neurons")
-    parser.add_argument("--d", type=int, default=1, help="Latent dimension of z")
+    parser.add_argument(
+        "--d",
+        type=int,
+        default=1,
+        help="Latent dimension of z shared between x and y populations, inducing correlations.",
+    )
+    parser.add_argument(
+        "--extra-dims",
+        type=int,
+        default=0,
+        help="Number of of 'extra' dims in z that are not shared, limiting total similarity.",
+    )
     parser.add_argument(
         "--poisson-scale",
         type=float,
@@ -94,7 +114,7 @@ if __name__ == "__main__":
     comp_name = args.comparator.replace("_", " ")
 
     kwargs_base = {
-        "latent_dim": args.d,
+        "latent_dim": args.d + args.extra_dims,
         "num_neurons": args.n[-1],
         "poisson_scale": args.poisson_scale,
     }
@@ -141,6 +161,7 @@ if __name__ == "__main__":
         run_id=0,
         comparator=comp_fn,
         m=args.m[0],
+        shared_dim=args.d,
         **update_dict(kwargs[0], num_neurons=args.n[0]),
     )
 
@@ -156,6 +177,7 @@ if __name__ == "__main__":
             run_id=r,
             comparator=comp_fn,
             m=m,
+            shared_dim=args.d,
             **update_dict(kw, num_neurons=n),
         )
         for r in range(args.repeats)
@@ -173,6 +195,7 @@ if __name__ == "__main__":
         x_axis = "m"
         keys = {
             "d": args.d,
+            "b": args.extra_dims,
             "n": args.n[0],
             "noise": f"Poisson(x{args.poisson_scale})" if args.poisson_scale else "none",
         }
@@ -180,6 +203,7 @@ if __name__ == "__main__":
         x_axis = "num_neurons"
         keys = {
             "d": args.d,
+            "b": args.extra_dims,
             "m": args.m[0],
             "noise": f"Poisson(x{args.poisson_scale})" if args.poisson_scale else "none",
         }
