@@ -1,7 +1,10 @@
+
+from abc import ABC, abstractmethod
+from typing import Optional
+
+import numpy as np
 import torch
 from torch import nn
-from typing import Optional
-from abc import ABC, abstractmethod
 
 
 class DataGenBase(nn.Module, ABC):
@@ -129,7 +132,9 @@ class RadialBasisNeurons(DataGenBase):
         device: Optional[torch.device] = None,
     ):
         super().__init__(latent_dim, num_neurons, poisson_scale, seed, device)
-        self.bw = bandwidth
+        # 'bandwidth' parameter sets the width of the radial basis functions, such that neural
+        # response is 0.5 at distance 'bandwidth' from the center.
+        self.sigma = bandwidth / np.sqrt(2 * np.log(2))
 
         self.centers = None
         self.init_embedding_functions()
@@ -147,7 +152,9 @@ class RadialBasisNeurons(DataGenBase):
         self.centers = nn.Parameter(self.centers)
 
     def tuning(self, z: torch.Tensor) -> torch.Tensor:
-        dist_to_center = torch.linalg.norm(z[:, None, :] - self.centers[None, :, :], dim=-1)
-        activations = torch.exp(-0.5 * (dist_to_center / self.bw) ** 2)
+        abs_diff = torch.abs(z[:, None, :] - self.centers[None, :, :])
+        toroidal_dist = torch.min(abs_diff, 2 - abs_diff)  # toroidal distance wrapping around [-1, 1]
+        dist_to_center = torch.linalg.norm(toroidal_dist, dim=-1)
+        activations = torch.exp(-0.5 * (dist_to_center / self.sigma) ** 2)
 
         return activations
